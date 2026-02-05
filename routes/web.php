@@ -6,49 +6,51 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\MemberController;
+use Illuminate\Support\Facades\Route;
 use App\Models\Project;
+
 // ===== Root =====
 Route::get('/', function () {
-    return redirect()->route('login'); // redirect default ke login
+    return redirect()->route('login');
 });
 
-// ===== Auth =====
-require __DIR__.'/auth.php'; // ini sudah memanggil route login Breeze
+// ===== Auth (Laravel Breeze) =====
+require __DIR__.'/auth.php';
 
-// ===== Protected Routes =====
-
-// PM 
+// ===== Protected Routes (Login Only) =====
 Route::middleware(['auth'])->group(function () {
+    
+    // Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Projects: Member & PM bisa index & show. 
+    // Sisanya (create, store, edit, update, destroy) dikunci di Controller atau Middleware.
     Route::resource('projects', ProjectController::class);
+    
+    // Fitur Selesaikan Project (Hanya PM)
+    Route::patch('/projects/{project}/complete', [ProjectController::class, 'complete'])
+        ->name('projects.complete')
+        ->middleware('role:Project Manager');
+
+    // Tasks Management
     Route::resource('tasks', TaskController::class);
 });
 
-
-// Admin routes
-Route::middleware(['auth'])->group(function () {
-    // Dashboard Admin
-    Route::get('/admin/dashboard', [AdminController::class,'dashboard'])->name('admin.dashboard');
-
-    // CRUD users
+// ===== Admin Routes =====
+Route::middleware(['auth', 'role:Admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::resource('users', UserController::class);
 });
 
-
-Route::patch('/projects/{project}/complete',
-    [ProjectController::class, 'complete']
-)->name('projects.complete');
-
-// DITAMBAHKAN di web.php
-Route::middleware(['auth','role:Member'])->prefix('member')->name('member.')->group(function () {
+// ===== Member Specific Routes =====
+Route::middleware(['auth', 'role:Member'])->prefix('member')->name('member.')->group(function () {
     Route::get('/dashboard', [MemberController::class, 'dashboard'])->name('dashboard');
     Route::get('/tasks', [MemberController::class, 'myTasks'])->name('tasks');
     Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
-    
 });
+
+// Helper API untuk Dynamic Member Dropdown
 Route::get('/projects/{project}/members', function(Project $project){
-    return $project->members; // kembalikan json
-})->name('projects.members');
+    return $project->members;
+})->name('projects.members')->middleware('auth');

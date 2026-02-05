@@ -9,14 +9,21 @@ use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
+    // KITA HAPUS CONSTRUCT YANG ERROR TADI
+
     public function index()
     {
-        if (Auth::user()->hasRole('Project Manager')) {
-            $projects = Project::where('created_by', Auth::id())
-                ->with('members')
-                ->get();
+        $user = Auth::user();
+
+        if ($user->hasRole('Project Manager')) {
+            $projects = Project::where('created_by', $user->id)->with('members')->latest()->get();
+        } elseif ($user->hasRole('Member')) {
+            // Member hanya lihat proyek di mana dia jadi anggota
+            $projects = Project::whereHas('members', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->with('members')->latest()->get();
         } else {
-            $projects = Project::with('members')->get();
+            $projects = Project::with('members')->latest()->get();
         }
 
         return view('projects.index', compact('projects'));
@@ -32,7 +39,6 @@ class ProjectController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'deadline' => 'required|date',
             'members' => 'nullable|array',
         ]);
@@ -52,60 +58,38 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('success', 'Project berhasil dibuat!');
     }
 
+    public function show(Project $project)
+    {
+        // Proteksi manual untuk Member agar tidak bisa ngintip project orang lewat URL
+        if (Auth::user()->hasRole('Member')) {
+            if (!$project->members()->where('user_id', Auth::id())->exists()) {
+                abort(403, 'Anda bukan anggota proyek ini.');
+            }
+        }
+
+        $project->load(['members', 'creator', 'tasks.user']);
+        return view('projects.show', compact('project'));
+    }
+
     public function edit(Project $project)
     {
         $members = User::role('Member')->get();
         $assignedMembers = $project->members->pluck('id')->toArray();
-
         return view('projects.edit', compact('project', 'members', 'assignedMembers'));
     }
 
     public function update(Request $request, Project $project)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'deadline' => 'required|date',
-            'members' => 'nullable|array',
-        ]);
-
-        $project->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'deadline' => $request->deadline,
-        ]);
-
+        $project->update($request->only(['name', 'description', 'deadline']));
         if ($request->members) {
             $project->members()->sync($request->members);
         }
-
-        return redirect()->route('projects.index')->with('success', 'Project berhasil diupdate!');
+        return redirect()->route('projects.index')->with('success', 'Project diupdate!');
     }
 
     public function destroy(Project $project)
     {
         $project->delete();
-        return redirect()->route('projects.index')->with('success', 'Project berhasil dihapus!');
+        return redirect()->route('projects.index')->with('success', 'Project dihapus!');
     }
-
-    // ⭐ COMPLETE PROJECT
-    public function complete(Project $project)
-    {
-        if ($project->progress() < 100) {
-            return back()->with('error', 'Semua task belum selesai!');
-        }
-
-        $project->update([
-            'status' => 'Completed'
-        ]);
-
-        return back()->with('success', 'Project selesai!');
-    }
-
-public function show(Project $project)
-{
-    $project->load(['members', 'creator', 'tasks.user']);
-
-    return view('projects.show', compact('project'));
-}
 }

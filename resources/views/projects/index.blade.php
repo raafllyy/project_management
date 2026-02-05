@@ -3,13 +3,14 @@
 @section('content')
 <div class="container-fluid px-4 py-4">
 
-    <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-1">Proyek</h2>
             <p class="text-muted mb-0">Manajemen dan pengorganisasian semua proyek Anda</p>
         </div>
 
+        {{-- HANYA PM YANG BISA LIHAT TOMBOL BUAT --}}
+        @role('Project Manager')
         <a href="{{ route('projects.create') }}"
            class="btn btn-primary btn-create d-flex align-items-center gap-2 px-4 py-2">
 
@@ -20,9 +21,9 @@
 
             <span class="fw-semibold">Buat Proyek</span>
         </a>
+        @endrole
     </div>
 
-    <!-- Success Alert -->
     @if(session('success'))
         <div class="alert alert-success alert-modern d-flex align-items-center mb-4">
             {{ session('success') }}
@@ -30,7 +31,6 @@
     @endif
 
 
-    <!-- Projects Grid -->
     @if($projects->count())
 
     <div class="row g-4">
@@ -41,7 +41,6 @@
 
             <div class="card project-card h-100 border-0 shadow-sm">
 
-                <!-- Header -->
                 <div class="card-header bg-white border-0 pt-4 pb-3">
 
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -70,7 +69,6 @@
                 </div>
 
 
-                <!-- Body -->
                 <div class="card-body pt-0">
 
                     {{-- Deadline --}}
@@ -105,7 +103,6 @@
                 </div>
 
 
-                <!-- Footer -->
                 <div class="card-footer bg-white border-0 pt-0 pb-4">
 
                     <div class="d-flex gap-2">
@@ -115,6 +112,8 @@
                             Detail
                         </a>
 
+                        {{-- HANYA PM YANG BISA LIHAT TOMBOL EDIT & DELETE --}}
+                        @role('Project Manager')
                         <a href="{{ route('projects.edit',$project) }}"
                            class="btn btn-outline-warning btn-action flex-fill">
                             Edit
@@ -133,6 +132,7 @@
                                 Delete
                             </button>
                         </form>
+                        @endrole
 
                     </div>
 
@@ -148,15 +148,17 @@
 
     @else
 
-    <!-- Empty State -->
     <div class="empty-state text-center py-5">
         <h4 class="fw-bold">Belum ada proyek</h4>
         <p class="text-muted">Mulai dengan membuat proyek pertama</p>
 
+        {{-- TOMBOL EMPTY STATE HANYA UNTUK PM --}}
+        @role('Project Manager')
         <a href="{{ route('projects.create') }}"
            class="btn btn-primary px-4 py-2">
             Buat Project
         </a>
+        @endrole
     </div>
 
     @endif
