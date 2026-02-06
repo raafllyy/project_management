@@ -1,59 +1,111 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Project Management System 
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi manajemen proyek berbasis web ini dirancang dengan sistem Role-Based Access Control (RBAC) untuk memfasilitasi kolaborasi tim dalam mengelola tugas, anggota, dan progres kerja secara real-time.
 
-## About Laravel
+I. Cara Install & Run (Step-by-Step)
+    Dari Gitbash
+        Pastikan perangkat Anda sudah terinstal PHP >= 8.2, Composer, Node.js & NPM, serta MySQL.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1. Clone Repository Buka terminal dan jalankan perintah:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+GitBash
+    git clone <https://github.com/raafllyy/project_management.git>
+    cd project_management
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+2. Install Dependencies Instal paket PHP dan JavaScript yang diperlukan:
 
-## Learning Laravel
+GitBash
+    composer install
+    npm install
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+3. Konfigurasi Environment Salin file .env.example menjadi .env:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+GitBash
+    cp .env.example .env
 
-## Laravel Sponsors
+4. Buka file .env dan sesuaikan bagian database (pastikan database sudah dibuat di MySQL Anda):
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Cuplikan kode
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=management_app
+    DB_USERNAME=root
+    DB_PASSWORD=
 
-### Premium Partners
+5. Generate App Key
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+GitBash
+    php artisan key:generate
 
-## Contributing
+6. Migrasi Database & Seeding Jalankan perintah ini untuk membuat tabel otomatis dan mengisi data awal (Admin, PM, Member) sesuai spesifikasi soal:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+GitBash
+    php artisan migrate --seed
+    
+7. Compile Frontend Asset
 
-## Code of Conduct
+GitBash
+    npm run build
+    
+8. Jalankan Aplikasi
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+GitBash
+    php artisan serve
+        Aplikasi dapat diakses di: http://127.0.0.1:8000
 
-## Security Vulnerabilities
+II. Struktur Database
+        Sistem menggunakan database relasional MySQL dengan struktur modular untuk mendukung skalabilitas:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+users: Menyimpan identitas pengguna dan kredensial login.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+projects: Menyimpan data utama proyek termasuk nama, deskripsi, deadline, dan creator (Project Manager).
+
+
+tasks: Menyimpan daftar pekerjaan spesifik dengan atribut deskripsi, deadline, dan status (Todo, In Progress, Done).
+
+
+roles & permissions: Mengelola hak akses berdasarkan role (Admin, Project Manager, Member).
+
+
+project_user (Pivot): Tabel penghubung untuk fitur penugasan anggota tim ke dalam proyek tertentu.
+
+III. Deskripsi Singkat Arsitektur
+        Aplikasi dikembangkan menggunakan Laravel Framework dengan pola MVC (Model-View-Controller) untuk memastikan kode modular dan aman.
+
+Role-Based Access Control (RBAC):
+
+
+Admin: Memiliki otoritas penuh untuk mengelola user dan role.
+
+
+Project Manager: Berwenang membuat proyek, mengelola data proyek, dan menentukan anggota tim.
+
+
+Member: Dibatasi hanya untuk melihat proyek yang ditugaskan dan memperbarui progres task (status).
+
+
+Dashboard Ringkasan: Dashboard menyajikan data progres proyek secara otomatis yang dihitung berdasarkan persentase task yang telah mencapai status 'Done'.
+
+
+Keamanan: Implementasi validasi input yang ketat dan sanitasi data di setiap layer untuk mencegah celah keamanan seperti SQL Injection dan XSS.
+
+
+API Integration: Menyediakan minimal 5 API endpoint berbasis JSON untuk kebutuhan integrasi data eksternal.
+
+Link Aplikasi Live (Railway): "https://projectmanagement-production-fcb6.up.railway.app/"
+
+Akun Tester:
+1. Admin: 
+    email : admin@example.com 
+    Pass: password
+2.
+Project Manager: 
+    email : pm@example.com 
+    Pass: password
+3.
+Member: 
+    email : member@example.com 
+    Pass: password
